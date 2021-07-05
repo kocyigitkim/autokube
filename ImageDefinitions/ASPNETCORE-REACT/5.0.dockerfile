@@ -26,5 +26,6 @@ FROM base AS final
 WORKDIR /app/run
 COPY --from=publish /app/publish .
 COPY --from=build-node "/%ProjectName%/ClientApp/build" ./ClientApp/build
+RUN apt-get update && apt-get install -y --no-install-recommends gss-ntlmssp
 RUN cp /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 ENTRYPOINT ["dotnet", "%ProjectName%.dll"]

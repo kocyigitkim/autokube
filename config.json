@@ -1,0 +1,11 @@
+{
+    "registry": "localhost:5000",
+    "plugins": {
+        "nuget": {
+            "url": "https://pkgs.dev.azure.com/example/Project/_packaging/example/nuget/v3/index.json",
+            "name": "Example",
+            "user": "example@example.com",
+            "pat": "AZURE DEVOPS PERSONAL ACCESS TOKEN"
+        }
+    }
+}

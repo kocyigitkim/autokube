@@ -1,0 +1,6 @@
+FROM alpine:latest
+RUN apk --update add nodejs npm
+WORKDIR /app/src
+COPY . .
+RUN npm install --legacy-peer-deps
+CMD npm run start

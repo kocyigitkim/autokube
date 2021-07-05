@@ -1,0 +1,9 @@
+{
+    "name": "Node.js",
+    "alias": [
+        "nodejs",
+        "node"
+    ],
+    "platform": "linux",
+    "version": "latest"
+}

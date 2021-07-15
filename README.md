@@ -1,4 +1,5 @@
 
+
 # AutoKube
 AutoKube Is Open-Source Automated Continuous Deployment Tool For Kubernetes. 
 
@@ -92,6 +93,12 @@ Autokube uses "autokube.json" file format. When you define configuration file on
 ```
 
 ### What's next?
+	- DaemonSet, CronJob, Job support
+		Daemonsets work on all kubernetes nodes.
+		CronJobs work on rule you defined.
+		Job work one time when your kubernetes cluster first
+	- PVC support
+		AutoKube currently not supports pvc storages. We will support on next commit. 
 	- Automated Version Control
 		We aim to do version control automated. For now, all apps deploying as latest version.
 	- Advanced Deployment Controller

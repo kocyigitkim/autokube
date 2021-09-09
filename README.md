@@ -15,7 +15,7 @@ Autokube uses "autokube.json" file format. When you define configuration file on
   "workingNamespace": "service",
   "projectName": "Example Console App",
   "name": "exampleconsoleapp",
-  "platform": "NETCORE",
+  "platform": "DOTNETCORE",
   "version": "latest"
 }
  ```

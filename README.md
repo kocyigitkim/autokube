@@ -12,11 +12,11 @@ Autokube uses "autokube.json" file format. When you define configuration file on
 
  ```json
  {
-  "workingNamespace": "web",
-  "projectName": "Example Web App",
-  "name": "examplewebapp",
-  "platform": "ASPNETCORE",
-  "version": "5.0"
+  "workingNamespace": "service",
+  "projectName": "Example Console App",
+  "name": "exampleconsoleapp",
+  "platform": "NETCORE",
+  "version": "latest"
 }
  ```
 

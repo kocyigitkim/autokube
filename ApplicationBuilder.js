@@ -127,9 +127,11 @@ class ApplicationBuilder {
       }
     }
     try {
+      console.log("## Configuring PVC");
       for (var config of PVCInstaller(this.app)) {
         configs.push(config);
       }
+      console.log("## PVC configured.");
     } catch (err) {
       errorCount++;
       console.error(err);

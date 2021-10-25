@@ -24,7 +24,7 @@ class KubernetesCLI {
   }
   static async Autoscale(type, name, namespace, min, max, cpuPercentage) {
     var _error = null;
-    await KubernetesCLI.Run(["autoscale", type + "/" + name, "--min", min, "--max", max, "--cpu-percentage", cpuPercentage, "-n", namespace]).catch(err => _error = err);
+    await KubernetesCLI.Run(["autoscale", type, name, "--min", min, "--max", max, "--cpu-percentage", cpuPercentage, "-n", namespace]).catch(err => _error = err);
     if (_error) { throw _error; }
   }
   static async ApplyConfiguration(config, namespace = "default") {

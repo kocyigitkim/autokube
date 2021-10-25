@@ -20,22 +20,23 @@ function Build(app, imagetag, releaseMode) {
         "nginx.ingress.kubernetes.io/proxy-send-timeout": '1200',
         ...(app.ingress.pathRewrite
           ? {
-              "nginx.ingress.kubernetes.io/rewrite-target":
-                app.ingress.pathRewrite,
-            }
+            "nginx.ingress.kubernetes.io/rewrite-target":
+              app.ingress.pathRewrite,
+          }
           : {}),
         "nginx.ingress.kubernetes.io/use-regex": app.ingress.isRegex
           ? "true"
           : "false",
         ...(app.ingress.sslredirect
           ? {
-              "nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
-              "nginx.ingress.kubernetes.io/ssl-redirect": "true",
-            }
+            "nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
+            "nginx.ingress.kubernetes.io/ssl-redirect": "true",
+          }
           : {
-              "nginx.ingress.kubernetes.io/force-ssl-redirect": "false",
-              "nginx.ingress.kubernetes.io/ssl-redirect": "false",
-          })
+            "nginx.ingress.kubernetes.io/force-ssl-redirect": "false",
+            "nginx.ingress.kubernetes.io/ssl-redirect": "false",
+          }),
+        ...(app.ingress.annotations ? app.ingress.annotations : {}),
       },
     },
     spec: {

@@ -7,6 +7,7 @@ const path = require("path");
 const DeploymentBuilder = require("./Kubernetes/DeploymentBuilder");
 const ServiceBuilder = require("./Kubernetes/ServiceBuilder");
 const IngressBuilder = require("./Kubernetes/IngressBuilder");
+const PVCInstaller = require("./Kubernetes/PVCInstaller");
 
 const ImageManager = require("./ImageManager.js");
 const { release } = require("os");
@@ -125,7 +126,14 @@ class ApplicationBuilder {
         console.error(err);
       }
     }
-
+    try {
+      for (var config of PVCInstaller(this.app)) {
+        configs.push(config);
+      }
+    } catch (err) {
+      errorCount++;
+      console.error(err);
+    }
     try {
       console.log("## Configuring deployment...");
       for (var config of DeploymentBuilder(

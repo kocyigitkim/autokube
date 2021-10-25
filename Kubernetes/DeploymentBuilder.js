@@ -84,7 +84,21 @@ function Build(app, imagetag, releaseMode, configRootPath) {
         return "128Mi";
     }
   }
-
+  // ? Storage
+  if (app.storage && Array.isArray(app.storage)) {
+    for (var storage of app.storage) {
+      var storageName = storage.name;
+      storageName = storageName.toLowerCase();
+      _volumes.volumes.push({
+        name: storageName,
+        persistentVolumeClaim: { claimName: storage.pvc },
+      });
+      _volumeMounts.volumeMounts.push({
+        mountPath: storage.mount,
+        name: storageName,
+      });
+    }
+  }
   var deploymentResources = null;
 
   if (app.performance) {
@@ -117,6 +131,15 @@ function Build(app, imagetag, releaseMode, configRootPath) {
       selector: {
         matchLabels: labels,
       },
+      ...(app.strategy ? { strategy: app.strategy } : {
+        strategy: {
+          type: "RollingUpdate",
+          rollingUpdate: {
+            maxSurge: "100%",
+            maxUnavailable: "10%"
+          }
+        }
+      }),
       template: {
         metadata: {
           labels: labels,

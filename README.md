@@ -27,7 +27,9 @@ Autokube uses "autokube.json" file format. When you define configuration file on
   2.  Type "node /autokube/index.js build" and run.
       -- /autokube: We are used this directory for example. You can move AutoKube to specific directory you want.
       AutoKube find docker & kubernetes easily on working os and start the deployment.
-
+- Init Project:
+  1.  use "autokube init" for init a project in current directory. Autokube determines automatically platform & version and create the configuration file.
+      !!! for now supports only node.js projects !!!
 ---
 
 #### Configuration File Structure (autokube.json)

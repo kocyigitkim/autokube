@@ -1,5 +1,5 @@
 const KubeCLI = require("./KubernetesCLI");
-const cmd = require("../CommandLineHost");
+const cmd = require("../Console/CommandLineHost");
 const path = require("path");
 const fs = require("fs");
 const uuid = require("uuid").v4;

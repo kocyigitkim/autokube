@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const Version = require("./Core/Version");
+const Version = require("./Configuration/Version");
 
 class ImageManager {
   constructor() {

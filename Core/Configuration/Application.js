@@ -1,4 +1,5 @@
 const ApplicationBuilder = require("../ApplicationBuilder");
+const IstioDefinition = require("./IstioDefinition");
 const Version = require("./Version");
 
 class Application {
@@ -15,6 +16,7 @@ class Application {
     this.configpath = "";
     this.env = [{ name: '', value: '' }];
     this.servicetype = "ClusterIP";
+    this.mode = "Deployment/Daemonset/Job/CronJob";
     this.nodeName = null;
     this.dns = {
       nameservers: [],
@@ -67,6 +69,7 @@ class Application {
         maxSurge: 0
       },
     };
+    this.istio = new IstioDefinition();
   }
 }
 

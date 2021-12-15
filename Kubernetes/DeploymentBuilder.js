@@ -1,4 +1,4 @@
-const Application = require("../Core/Application");
+const Application = require("../Core/Configuration/Application");
 const fs = require("fs");
 const path = require("path");
 
@@ -9,15 +9,14 @@ const path = require("path");
 function Build(app, imagetag, releaseMode, configRootPath) {
   var output = [];
   const appName = app.name + "-" + releaseMode;
+  app.publishedName = appName;
   const labels = {
     app: appName,
     release: releaseMode,
   };
-  var _volumes = {};
-  var _volumeMounts = {};
-  if (app.configs.length > 0) {
-    _volumes.volumes = [];
-    _volumeMounts.volumeMounts = [];
+  var _volumes = {volumes: []};
+  var _volumeMounts = {volumeMounts: []};
+  if (Array.isArray(app.configs) && app.configs.length > 0) {
     for (var config of app.configs) {
       var fname = path.parse(config).base;
       var configName = appName + "-" + fname.replace(/\./g, "");
@@ -91,7 +90,7 @@ function Build(app, imagetag, releaseMode, configRootPath) {
       storageName = storageName.toLowerCase();
       _volumes.volumes.push({
         name: storageName,
-        persistentVolumeClaim: { claimName: storage.pvc },
+        persistentVolumeClaim: { claimName: app.name + "-" + storage.name + "-pvc" },
       });
       _volumeMounts.volumeMounts.push({
         mountPath: storage.mount,
@@ -103,25 +102,60 @@ function Build(app, imagetag, releaseMode, configRootPath) {
 
   if (app.performance) {
     deploymentResources = {};
-    if ((app.performance.cpu && app.performance.cpu.limit) || (app.performance.memory && app.performance.memory.limit)) deploymentResources.limits = {};
-    if ((app.performance.cpu && app.performance.cpu.request) || (app.performance.memory && app.performance.memory.request)) deploymentResources.requests = {};
+    if (
+      (app.performance.cpu && app.performance.cpu.limit) ||
+      (app.performance.memory && app.performance.memory.limit)
+    )
+      deploymentResources.limits = {};
+    if (
+      (app.performance.cpu && app.performance.cpu.request) ||
+      (app.performance.memory && app.performance.memory.request)
+    )
+      deploymentResources.requests = {};
 
-    if ((app.performance.cpu && app.performance.cpu.limit)) deploymentResources.limits.cpu = GetCPUResource(app.performance.cpu.limit);
-    if ((app.performance.memory && app.performance.memory.limit)) deploymentResources.limits.memory = GetMemoryResource(app.performance.memory.limit);
+    if (app.performance.cpu && app.performance.cpu.limit)
+      deploymentResources.limits.cpu = GetCPUResource(
+        app.performance.cpu.limit
+      );
+    if (app.performance.memory && app.performance.memory.limit)
+      deploymentResources.limits.memory = GetMemoryResource(
+        app.performance.memory.limit
+      );
 
-    if ((app.performance.cpu && app.performance.cpu.request)) deploymentResources.requests.cpu = GetCPUResource(app.performance.cpu.request);
-    if ((app.performance.memory && app.performance.memory.request)) deploymentResources.requests.memory = GetMemoryResource(app.performance.memory.request);
+    if (app.performance.cpu && app.performance.cpu.request)
+      deploymentResources.requests.cpu = GetCPUResource(
+        app.performance.cpu.request
+      );
+    if (app.performance.memory && app.performance.memory.request)
+      deploymentResources.requests.memory = GetMemoryResource(
+        app.performance.memory.request
+      );
   }
+  var publishKind = "Deployment";
+  var publishVersion = "apps/v1";
+  if (app.mode && app.mode.toLowerCase() === "daemonset") {
+    publishKind = "DaemonSet";
+    publishVersion = "apps/v1";
+  }
+  var strategyName =
+    publishKind === "DaemonSet" ? "updateStrategy" : "strategy";
+  var canAddReplicas = publishKind === "Deployment";
+
   var dep = {
     apiVersion: "apps/v1",
-    kind: "Deployment",
+    kind: publishKind,
     metadata: {
       name: appName,
-      labels: labels,
+      labels: {
+        ...labels,
+        buildtime: "ISO_" + new Date().toISOString().replace(/[\:\.\-]/g, "_"),
+      },
     },
     spec: {
-      replicas: app.deployment.initialpod,
-      strategy: {
+      ...(canAddReplicas
+        ? { replicas: (app.deployment && app.deployment.initialpod) || 1 }
+        : {}),
+      [strategyName]: {
         type: "RollingUpdate",
         rollingUpdate: {
           maxSurge: "100%",
@@ -131,15 +165,19 @@ function Build(app, imagetag, releaseMode, configRootPath) {
       selector: {
         matchLabels: labels,
       },
-      ...(app.strategy ? { strategy: app.strategy } : {
-        strategy: {
-          type: "RollingUpdate",
-          rollingUpdate: {
-            maxSurge: "100%",
-            maxUnavailable: "10%"
+      ...(app.strategy
+        ? {
+            [strategyName]: app.strategy,
           }
-        }
-      }),
+        : {
+            [strategyName]: {
+              type: "RollingUpdate",
+              rollingUpdate: {
+                maxSurge: "100%",
+                maxUnavailable: "10%",
+              },
+            },
+          }),
       template: {
         metadata: {
           labels: labels,
@@ -149,7 +187,11 @@ function Build(app, imagetag, releaseMode, configRootPath) {
             runAsNonRoot: false,
             runAsUser: 0,
           },
-          ...((app.nodeName != null && app.nodeName != undefined && app.nodeName.length > 0) ? ({ nodeName: app.nodeName }) : {}),
+          ...(app.nodeName != null &&
+          app.nodeName != undefined &&
+          app.nodeName.length > 0
+            ? { nodeName: app.nodeName }
+            : {}),
           ...(_volumes || {}),
           ...({ dnsConfig: app.dns } || {}),
           restartPolicy: "Always",
@@ -159,32 +201,34 @@ function Build(app, imagetag, releaseMode, configRootPath) {
               image: imagetag,
               imagePullPolicy: "Always",
               ...(_volumeMounts || {}),
-              ports: app.endPoints.map((p) => ({
-                containerPort: p.in,
-                name:
-                  p.name ||
-                  (p.in == 80 ? "HTTP" : p.in == 443 ? "HTTPS" : "TCP"),
-                protocol: p.name.toUpperCase() == "UDP" ? "UDP" : "TCP",
-              })),
+              ...(Array.isArray(app.endPoints) && {
+                ports: app.endPoints.map((p) => ({
+                  containerPort: p.in,
+                  name:
+                    p.name ||
+                    (p.in == 80 ? "HTTP" : p.in == 443 ? "HTTPS" : "TCP"),
+                  protocol: p.name.toUpperCase() == "UDP" ? "UDP" : "TCP",
+                })),
+              }),
               ...(app.health
                 ? {
-                  livenessProbe: {
-                    httpGet: {
-                      path: app.health.path,
-                      port: app.health.port,
+                    livenessProbe: {
+                      httpGet: {
+                        path: app.health.path,
+                        port: app.health.port,
+                      },
+                      initialDelaySeconds: app.health.initial,
+                      periodSeconds: app.health.period,
                     },
-                    initialDelaySeconds: app.health.initial,
-                    periodSeconds: app.health.period,
-                  },
-                  readinessProbe: {
-                    httpGet: {
-                      path: app.health.path,
-                      port: app.health.port,
+                    readinessProbe: {
+                      httpGet: {
+                        path: app.health.path,
+                        port: app.health.port,
+                      },
+                      initialDelaySeconds: app.health.initial,
+                      periodSeconds: app.health.period,
                     },
-                    initialDelaySeconds: app.health.initial,
-                    periodSeconds: app.health.period,
-                  },
-                }
+                  }
                 : {}),
               resources: deploymentResources,
               env: (app.env || []).filter((p) => p.name.trim().length > 0),

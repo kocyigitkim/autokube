@@ -1,4 +1,4 @@
-const BuildContext = require("../BuildContext");
+const BuildContext = require("../Core/BuildContext");
 const IPlugin = require("./Plugin");
 const path = require("path");
 const fs = require("fs");

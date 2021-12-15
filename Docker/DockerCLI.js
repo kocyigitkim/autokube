@@ -1,7 +1,7 @@
-const cmd = require("../CommandLineHost");
+const cmd = require("../Console/CommandLineHost");
 const fs = require("fs");
 const path = require("path");
-const Application = require("../Core/Application");
+const Application = require("../Core/Configuration/Application");
 const { cwd } = require("process");
 
 class DockerCLI {
@@ -54,20 +54,20 @@ class DockerCLI {
     registryaddress = "localhost:5000"
   ) {
     var targetPath = path.join(solutionPath || cwd(), "dockerfile");
-    try {
-      var dockerfilesource = fs.readFileSync(dockerfilepath, {
-        encoding: "utf-8",
-      });
-      dockerfilesource = dockerfilesource.replace(
-        /\%[pP]roject[nN]ame\%/g,
-        app.projectName
-      );
-      dockerfilesource = dockerfilesource.replace(
-        /\%[rR]egistry\%/g,
-        registryaddress
-      );
-      fs.writeFileSync(targetPath, dockerfilesource, { encoding: "utf-8" });
-    } catch {}
+
+    var dockerfilesource = fs.readFileSync(dockerfilepath, {
+      encoding: "utf-8",
+    });
+    dockerfilesource = dockerfilesource.replace(
+      /\%[pP]roject[nN]ame\%/g,
+      app.projectName
+    );
+    dockerfilesource = dockerfilesource.replace(
+      /\%[rR]egistry\%/g,
+      registryaddress
+    );
+    fs.writeFileSync(targetPath, dockerfilesource, { encoding: "utf-8" });
+
 
     var imageTag =
       registryaddress +
@@ -86,11 +86,9 @@ class DockerCLI {
     } catch (err) {
       console.error(err);
     }
-    try {
-      await DockerCLI.Run(["push", imageTag], null, solutionPath, false);
-    } catch (err) {
-      console.error(err);
-    }
+
+    await DockerCLI.Run(["push", imageTag], null, solutionPath, false);
+
 
     return imageTag;
   }

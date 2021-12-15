@@ -1,4 +1,4 @@
-const cmd = require("../CommandLineHost");
+const cmd = require("../Console/CommandLineHost");
 const yaml = require("yaml");
 const fs = require("fs");
 const path = require("path");
@@ -12,11 +12,11 @@ class KubernetesCLI {
     }
     await _cmd.start();
   }
-  static async RestartDeployment(name, namespace = "default") {
+  static async RestartResource(resourceType, name, namespace = "default") {
     await KubernetesCLI.Run([
       "rollout",
       "restart",
-      "deployment",
+      resourceType,
       name,
       "-n",
       namespace,
@@ -28,29 +28,24 @@ class KubernetesCLI {
     if (_error) { throw _error; }
   }
   static async ApplyConfiguration(config, namespace = "default") {
-    try {
-      var fsname = path.join(__basedir, "config_" + uuid() + ".yaml");
-    } catch { }
+
+    var fsname = path.join(__basedir, "config_" + uuid() + ".yaml");
+
     var _config = yaml.stringify(config);
 
     fs.writeFileSync(fsname, _config);
     var _error = null;
-    try {
-      await KubernetesCLI.Run(["apply", "-f", fsname, "-n", namespace]);
-    } catch (err) {
-      _error = err;
-    }
-    try {
-      fs.unlinkSync(fsname);
-    } catch { }
-    if (_error) {
-      throw _error;
-    }
+
+    await KubernetesCLI.Run(["apply", "-f", fsname, "-n", namespace]);
+
+
+    fs.unlinkSync(fsname);
+
   }
   static async CreateNamespace(name) {
-    try {
-      var fsname = path.join(__basedir, "namespace_" + name + ".yaml");
-    } catch { }
+
+    var fsname = path.join(__basedir, "namespace_" + name + ".yaml");
+
     var _config = yaml.stringify({
       apiVersion: "v1",
       kind: "Namespace",
@@ -61,9 +56,9 @@ class KubernetesCLI {
 
     fs.writeFileSync(fsname, _config);
     await KubernetesCLI.Run(["apply", "-f", fsname]);
-    try {
-      fs.unlinkSync(fsname);
-    } catch { }
+
+    fs.unlinkSync(fsname);
+
   }
   static async GetDeployments(namespace) {
     var rawData = "";

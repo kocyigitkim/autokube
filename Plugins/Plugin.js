@@ -1,5 +1,5 @@
-const ApplicationBuilder = require("../ApplicationBuilder");
-const BuildContext = require("../BuildContext");
+const ApplicationBuilder = require("../Core/ApplicationBuilder");
+const BuildContext = require("../Core/BuildContext");
 
 class IPlugin {
   constructor() {

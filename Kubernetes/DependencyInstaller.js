@@ -1,5 +1,5 @@
 const DockerCLI = require("../Docker/DockerCLI");
-const ImageManager = require("../ImageManager");
+const ImageManager = require("../Core/ImageManager");
 const path=  require('path');
 
 module.exports = async function InstallDependencies(

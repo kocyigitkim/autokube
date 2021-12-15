@@ -12,8 +12,8 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\index.js",
-            "args": ["build", "-config=autokube.json"],
-            "cwd": "C:\\Projects\\"
+            "args": ["build"],
+            "cwd": "C:\\Projects\\autokube-development"
         }
     ]
 }

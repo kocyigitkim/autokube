@@ -8,7 +8,7 @@ class CommandLineHost {
       args = [args];
     }
     args = args.map((p) => p.toString());
-    this.disableout =false;// disableout;
+    this.disableout = false;// disableout;
     this.cwd = cwd;
     this.filepath = filepath;
     this.process = null;
@@ -59,9 +59,14 @@ class CommandLineHost {
     while (this.state) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    console.log(
-      this.filepath + " host is exited with code: " + this.process.exitCode
-    );
+    if (this.process.exitCode != 0) {
+      throw new Error("Host exited with code: " + this.process.exitCode);
+    }
+    else {
+      console.log(
+        this.filepath + " host is exited with code: " + this.process.exitCode
+      );
+    }
   }
   stop() {
     console.log(this.filepath + " host is terminating...");
